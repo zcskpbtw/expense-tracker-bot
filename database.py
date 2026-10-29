@@ -10,4 +10,3 @@ def init_db():
                 'amount INT); ')
     con.commit()
     con.close()
-init_db()
