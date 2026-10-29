@@ -1,10 +1,11 @@
 import asyncio
 from config import dp,bot
-from handlers import start,fallback
+from handlers import start,fallback,add_expense
 
 
 async def main() -> None:
     dp.include_router(start.router)
+    dp.include_router(add_expense.router)
     dp.include_router(fallback.router)
 
     print('запуск бота')

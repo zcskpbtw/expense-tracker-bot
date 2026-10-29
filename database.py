@@ -10,3 +10,14 @@ def init_db():
                 'amount INT); ')
     con.commit()
     con.close()
+
+def add_expense(user_id, date, category, amount):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('INSERT INTO expenses (user_id, date, category, amount) '
+                    'VALUES (?,?,?,?);',
+                    (user_id,date,category,amount))
+    con_expenses.commit()
+    con_expenses.close()
+
+
