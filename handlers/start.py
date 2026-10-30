@@ -15,4 +15,4 @@ async def cmd_help(message: Message) -> None:
                          '/help  - Помощь \n'
                          '/stats - Посмотреть статистику \n'
                          '/add   - Добавить трату \n'
-                         '/del   - Удалить трату \n')
+                         '/delete  - Удалить трату \n')
