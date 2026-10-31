@@ -1,4 +1,4 @@
-
+from functions import is_valid_text
 from aiogram.filters import Command
 from aiogram import Router,types
 from aiogram.fsm.context import FSMContext
@@ -32,9 +32,10 @@ async def start_add(message: Message,state: FSMContext) -> None:
 
 @router.message(AddExpense.waiting_date)
 async def process_date(message: Message, state: FSMContext) -> None:
-    if not message.text or not message.text.strip():
-        await message.answer('Неверный формат записи!')
+    if not is_valid_text(message.text):
+        await message.answer('Неверный формат записи! Отправьте текст.')
         return
+
     if message.text.lower() == 'сегодня':
         msg = date.today().strftime('%Y-%m-%d')
         await state.update_data(date=msg)
@@ -52,8 +53,8 @@ async def process_date(message: Message, state: FSMContext) -> None:
 
 @router.message(AddExpense.waiting_category)
 async def process_category(message: Message, state: FSMContext) -> None:
-    if not message.text or not message.text.strip():
-        await message.answer('Неверный формат записи!')
+    if not is_valid_text(message.text):
+        await message.answer('Неверный формат записи! Отправьте текст.')
         return
     await state.update_data(category=message.text)
     await message.answer('Введите трату: ')

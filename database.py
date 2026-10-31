@@ -38,6 +38,34 @@ def get_all_expenses(user_id):
     con_expenses.close()
     return result
 
+def get_max_expense(user_id):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('SELECT date, '
+                    'category, '
+                    'amount '
+                    'FROM expenses '
+                    'WHERE user_id = ? '
+                    'GROUP BY category '
+                    'ORDER BY amount DESC '
+                    'LIMIT 1', (user_id,))
+    result = cur_exp.fetchone()
+    con_expenses.close()
+    return result
+
+def avg_exp_period(user_id, per1, per2):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('SELECT SUM(amount), '
+                    'COUNT(DISTINCT date) '
+                    'FROM expenses '
+                    'WHERE user_id = ? '
+                    'date BETWEEN ? AND ?;', (user_id, per1, per2))
+    get_avg = cur_exp.fetchone()
+    con_expenses.close()
+    return get_avg
+
+
 def delete_by_id(exp_id,user_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()

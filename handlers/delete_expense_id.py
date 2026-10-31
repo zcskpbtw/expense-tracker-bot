@@ -4,6 +4,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from database import delete_by_id
+from functions import is_valid_text
 
 
 router = Router(name='delete')
@@ -18,8 +19,8 @@ async def get_expenses(message: Message, state: FSMContext) -> None:
 
 @router.message(Delete.waiting_id)
 async def process_date(message: Message, state: FSMContext) -> None:
-    if not message.text or not message.text.strip():
-        await message.answer('Неверный формат записи!')
+    if not is_valid_text(message.text):
+        await message.answer('Неверный формат записи! Отправьте текст.')
         return
     try:
         exp_id = int(message.text)
