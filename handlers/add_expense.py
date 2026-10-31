@@ -1,9 +1,11 @@
+
 from aiogram.filters import Command
-from aiogram import Router
+from aiogram import Router,types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 from database import add_expense
+from datetime import date,datetime
 
 
 router = Router(name='add')
@@ -15,14 +17,34 @@ class AddExpense(StatesGroup):
 
 
 @router.message(Command('add'))
-async def start_add(message: Message, state: FSMContext) -> None:
-    await message.answer("Введите дату траты: ")
+async def start_add(message: Message,state: FSMContext) -> None:
+    kb =[
+        [types.KeyboardButton(text='Сегодня')],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        input_field_placeholder='Введите дату'
+        )
+    await message.answer("Введите дату траты \n"
+                         "Пример: сегодня или 2026 01 01 ", reply_markup=keyboard)
     await state.set_state(AddExpense.waiting_date)
 
 @router.message(AddExpense.waiting_date)
 async def process_date(message: Message, state: FSMContext) -> None:
-    await state.update_data(date=message.text)
-    await message.answer('Введите категорию траты: ')
+    if message.text.lower() == 'сегодня':
+        msg = date.today().strftime('%Y-%m-%d')
+        await state.update_data(date=msg)
+    else:
+        msg = message.text.replace(' ','-')
+        try:
+            valid_date = datetime.strptime(msg, '%Y-%m-%d')
+            await state.update_data(date=valid_date.strftime('%Y-%m-%d'))
+        except ValueError:
+            await message.answer('Введена некорректная дата')
+            return
+
+    await message.answer('Введите категорию траты: ', reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(AddExpense.waiting_category)
 
 @router.message(AddExpense.waiting_category)

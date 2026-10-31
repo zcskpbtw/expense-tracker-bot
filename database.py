@@ -18,7 +18,7 @@ def add_expense(user_id, date, category, amount):
                     '(user_id, '
                     'date, '
                     'category, '
-                    'mount) '
+                    'amount) '
                     'VALUES (?,?,?,?);',
                     (user_id,date,category,amount))
     con_expenses.commit()
