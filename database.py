@@ -32,7 +32,7 @@ def get_all_expenses(user_id):
                     'category, '
                     'amount '
                     'FROM expenses '
-                    'WHERE user_id = ?'
+                    'WHERE user_id = ? '
                     'ORDER BY date',(user_id,))
     result = cur_exp.fetchall()
     con_expenses.close()

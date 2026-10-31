@@ -13,11 +13,14 @@ class Delete(StatesGroup):
 
 @router.message(Command('delete'))
 async def get_expenses(message: Message, state: FSMContext) -> None:
-    await message.answer('Введите дату траты которую хотите удалить')
+    await message.answer('Введите айди траты которую хотите удалить')
     await state.set_state(Delete.waiting_id)
 
 @router.message(Delete.waiting_id)
 async def process_date(message: Message, state: FSMContext) -> None:
+    if not message.text or not message.text.strip():
+        await message.answer('Неверный формат записи!')
+        return
     try:
         exp_id = int(message.text)
     except ValueError:
