@@ -42,7 +42,7 @@ async def process_date(message: Message, state: FSMContext) -> None:
             valid_date = datetime.strptime(msg, '%Y-%m-%d')
             await state.update_data(date=valid_date.strftime('%Y-%m-%d'))
         except ValueError:
-            await message.answer('Введена некорректная дата')
+            await message.answer('Введена некорректная дата', reply_markup=keyboard_start())
             return
 
     await message.answer('Введите категорию траты: ', reply_markup=types.ReplyKeyboardRemove())
