@@ -57,7 +57,6 @@ def get_max_expense(user_id):
                     'amount '
                     'FROM expenses '
                     'WHERE user_id = ? '
-                    'GROUP BY category '
                     'ORDER BY amount DESC '
                     'LIMIT 1', (user_id,))
     result = cur_exp.fetchall()

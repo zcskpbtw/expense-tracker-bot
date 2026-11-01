@@ -1,5 +1,6 @@
 from aiogram.filters import Command
 from aiogram import Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from database import get_list_expenses
 
@@ -7,7 +8,8 @@ from database import get_list_expenses
 router = Router(name='list')
 
 @router.message(Command('list'))
-async def get_expenses(message: Message):
+async def get_expenses(message: Message, state: FSMContext):
+    await state.clear()
     expenses = get_list_expenses(user_id=message.from_user.id)
 
     if not expenses:

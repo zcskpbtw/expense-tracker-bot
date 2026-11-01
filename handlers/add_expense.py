@@ -18,6 +18,7 @@ class AddExpense(StatesGroup):
 
 @router.message(Command('add'))
 async def start_add(message: Message,state: FSMContext) -> None:
+    await state.clear()
     kb =[
         [types.KeyboardButton(text='Сегодня')],
         [types.KeyboardButton(text='Отмена')]
@@ -82,7 +83,7 @@ async def process_amount(message: Message, state: FSMContext) -> None:
         amount = amount
     )
     await state.clear()
-    await message.answer(f'Трата {amount} руб. в категории {data['category']} успешно добавлена!')
+    await message.answer(f"Трата {amount} руб. в категории {data['category']} успешно добавлена!")
 
 
 

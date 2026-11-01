@@ -14,6 +14,7 @@ class Delete(StatesGroup):
 
 @router.message(Command('delete'))
 async def get_expenses(message: Message, state: FSMContext) -> None:
+    await state.clear()
     await message.answer('Введите айди траты которую хотите удалить')
     await state.set_state(Delete.waiting_id)
 
