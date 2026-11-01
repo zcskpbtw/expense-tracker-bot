@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram import Router,types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from database import add_expense
 from datetime import date,datetime
 
@@ -20,6 +20,7 @@ class AddExpense(StatesGroup):
 async def start_add(message: Message,state: FSMContext) -> None:
     kb =[
         [types.KeyboardButton(text='Сегодня')],
+        [types.KeyboardButton(text='Отмена')]
     ]
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
@@ -36,7 +37,12 @@ async def process_date(message: Message, state: FSMContext) -> None:
         await message.answer('Неверный формат записи! Отправьте текст.')
         return
 
-    if message.text.lower() == 'сегодня':
+
+    if message.text.lower() == 'отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия', reply_markup=types.ReplyKeyboardRemove())
+        return
+    elif message.text.lower() == 'сегодня':
         msg = date.today().strftime('%Y-%m-%d')
         await state.update_data(date=msg)
     else:
