@@ -1,12 +1,11 @@
 from functions import is_valid_text
-from aiogram.filters import Command
-from aiogram import Router,types
+from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
 from database import add_expense
 from datetime import date,datetime
-
+from keyboards import keyboard_add, keyboard_start
 
 router = Router(name='add')
 
@@ -16,32 +15,23 @@ class AddExpense(StatesGroup):
     waiting_expense = State()
 
 
-@router.message(Command('add'))
+@router.message(F.text.in_({'/add', 'Добавить трату'}))
 async def start_add(message: Message,state: FSMContext) -> None:
     await state.clear()
-    kb =[
-        [types.KeyboardButton(text='Сегодня')],
-        [types.KeyboardButton(text='Отмена')]
-    ]
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=kb,
-        resize_keyboard=True,
-        input_field_placeholder='Введите дату'
-        )
     await message.answer("Введите дату траты \n"
-                         "Пример: сегодня или 2026 01 01 ", reply_markup=keyboard)
+                         "Пример: сегодня или 2026 01 01 ", reply_markup=keyboard_add())
     await state.set_state(AddExpense.waiting_date)
 
 @router.message(AddExpense.waiting_date)
 async def process_date(message: Message, state: FSMContext) -> None:
     if not is_valid_text(message.text):
-        await message.answer('Неверный формат записи! Отправьте текст.')
+        await state.clear()
+        await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
         return
-
 
     if message.text.lower() == 'отмена':
         await state.clear()
-        await message.answer('Отмена текущего действия', reply_markup=types.ReplyKeyboardRemove())
+        await message.answer('Отмена текущего действия', reply_markup=keyboard_start())
         return
     elif message.text.lower() == 'сегодня':
         msg = date.today().strftime('%Y-%m-%d')
@@ -72,7 +62,7 @@ async def process_amount(message: Message, state: FSMContext) -> None:
     try:
         amount = int(message.text)
     except ValueError:
-        await message.answer('Ошибка! Введите число!')
+        await message.answer('Ошибка! Введите число!', reply_markup=keyboard_start())
         return
     data = await state.get_data()
 
@@ -83,7 +73,7 @@ async def process_amount(message: Message, state: FSMContext) -> None:
         amount = amount
     )
     await state.clear()
-    await message.answer(f"Трата {amount} руб. в категории {data['category']} успешно добавлена!")
+    await message.answer(f"Трата {amount} руб. в категории {data['category']} успешно добавлена!", reply_markup=keyboard_start())
 
 
 

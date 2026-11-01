@@ -87,4 +87,15 @@ def delete_by_id(exp_id,user_id):
     con_expenses.close()
     return result
 
+def delete_all_exp(user_id):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('DELETE '
+                    'FROM expenses '
+                    'WHERE user_id = ?',(user_id,))
+    con_expenses.commit()
+    result = cur_exp.rowcount
+    con_expenses.close()
+    return result
+
 
