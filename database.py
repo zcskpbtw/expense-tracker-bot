@@ -49,19 +49,18 @@ def get_max_expense(user_id):
                     'GROUP BY category '
                     'ORDER BY amount DESC '
                     'LIMIT 1', (user_id,))
-    result = cur_exp.fetchone()
+    result = cur_exp.fetchall()
     con_expenses.close()
     return result
 
-def avg_exp_period(user_id, per1, per2):
+def avg_expenses(user_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
     cur_exp.execute('SELECT SUM(amount), '
                     'COUNT(DISTINCT date) '
                     'FROM expenses '
-                    'WHERE user_id = ? '
-                    'date BETWEEN ? AND ?;', (user_id, per1, per2))
-    get_avg = cur_exp.fetchone()
+                    'WHERE user_id = ? ', (user_id,))
+    get_avg = cur_exp.fetchall()
     con_expenses.close()
     return get_avg
 
