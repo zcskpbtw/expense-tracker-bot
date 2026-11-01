@@ -56,6 +56,7 @@ pip install -r requirements.txt
 
 env
 BOT_TOKEN=ваш_токен_от_BotFather
+
 PROXY_URL=ваш_url_прокси_если_требуется
 Запустите бота:
 ```
