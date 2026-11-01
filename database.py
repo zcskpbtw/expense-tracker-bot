@@ -24,7 +24,7 @@ def add_expense(user_id, date, category, amount):
     con_expenses.commit()
     con_expenses.close()
 
-def get_all_expenses(user_id):
+def get_list_expenses(user_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
     cur_exp.execute('SELECT id, '
@@ -37,6 +37,17 @@ def get_all_expenses(user_id):
     result = cur_exp.fetchall()
     con_expenses.close()
     return result
+
+def get_all_expenses(user_id):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('SELECT SUM(amount), '
+                    'COUNT(DISTINCT date) '
+                    'FROM expenses '
+                    'WHERE user_id = ? ', (user_id,))
+    get_all = cur_exp.fetchall()
+    con_expenses.close()
+    return get_all
 
 def get_max_expense(user_id):
     con_expenses = sqlite3.connect('expenses.db')
