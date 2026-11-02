@@ -30,5 +30,3 @@ async def delete(message: Message, state: FSMContext):
     else:
         await message.answer('Я тебя не понимаю', reply_markup=keyboard_start())
     await state.clear()
-
-
