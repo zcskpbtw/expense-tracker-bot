@@ -16,7 +16,7 @@ class Delete(StatesGroup):
 async def get_expenses(message: Message, state: FSMContext) -> None:
 
     await state.clear()
-    
+
     if not get_list_expenses(user_id=message.from_user.id):
         await message.answer('У вас пока что не трат')
         return
