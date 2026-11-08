@@ -5,7 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 from database import add_expense
 from datetime import date,datetime
-from keyboards import keyboard_add, keyboard_start
+from keyboards import keyboard_add, keyboard_start, keyboard_return
 
 router = Router(name='add')
 
@@ -45,20 +45,37 @@ async def process_date(message: Message, state: FSMContext) -> None:
             await message.answer('Введена некорректная дата', reply_markup=keyboard_start())
             return
 
-    await message.answer('Введите категорию траты: ', reply_markup=types.ReplyKeyboardRemove())
+    await message.answer('Введите категорию траты: ', reply_markup=keyboard_return())
     await state.set_state(AddExpense.waiting_category)
 
 @router.message(AddExpense.waiting_category)
 async def process_category(message: Message, state: FSMContext) -> None:
     if not is_valid_text(message.text):
-        await message.answer('Неверный формат записи! Отправьте текст.')
+        await state.clear()
+        await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
         return
+
+    if message.text.lower() == 'отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия', reply_markup=keyboard_start())
+        return
+
     await state.update_data(category=message.text)
     await message.answer('Введите трату: ')
     await state.set_state(AddExpense.waiting_expense)
 
 @router.message(AddExpense.waiting_expense)
 async def process_amount(message: Message, state: FSMContext) -> None:
+    if not is_valid_text(message.text):
+        await state.clear()
+        await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
+        return
+
+    if message.text.lower() == 'отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия', reply_markup=keyboard_start())
+        return
+    
     try:
         amount = int(message.text)
     except ValueError:
