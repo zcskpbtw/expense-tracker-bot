@@ -101,9 +101,9 @@ async def process_amount(message: Message, state: FSMContext) -> None:
 
     data = await state.get_data()
     add_expense(
-        user_id = message.from_user.id,
+        telegram_id = message.from_user.id,
         date = data['date'],
-        category = data['category'],
+        category_name = data['category'],
         amount = amount
     )
 
