@@ -8,7 +8,7 @@ def keyboard_add():
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
-        input_field_placeholder='Введите дату'
+        input_field_placeholder='Введите дату:'
     )
     return keyboard
 
@@ -22,7 +22,7 @@ def keyboard_start():
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
-        input_field_placeholder='Выберите действие'
+        input_field_placeholder='Выберите действие:'
     )
     return keyboard
 
@@ -33,7 +33,7 @@ def keyboard_return():
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
-        input_field_placeholder='Введите айти траты'
+        input_field_placeholder='Введите айди траты:'
     )
     return keyboard
 
@@ -44,7 +44,6 @@ def keyboard_accept():
     ]
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
-        resize_keyboard=True,
-        input_field_placeholder='Увенер?'
+        resize_keyboard=True
     )
     return keyboard
