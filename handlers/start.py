@@ -10,14 +10,18 @@ router = Router(name='start')
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext) -> None:
+
     await state.clear()
+
     await message.answer('Привет! Я твой бот для учета трат, что-бы добавить трату или посмотреть статистику, жми на кнопки!\n\n'
                          'Для помощи: /help',
                          reply_markup=keyboard_start())
 
 @router.message(Command('help'))
 async def cmd_help(message: Message, state: FSMContext) -> None:
+
     await state.clear()
+
     await message.answer('/start - Перезапустить бота \n'
                          '/help  - Помощь \n'
                          '/stats - Посмотреть статистику \n'

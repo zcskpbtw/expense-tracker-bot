@@ -14,30 +14,40 @@ class Delete(StatesGroup):
 
 @router.message(Command('delete_all'))
 async def get_expenses(message: Message, state: FSMContext) -> None:
+
     await state.clear()
+
     if not is_valid_text(message.text):
-        await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
+        await message.answer('Неверный формат записи! Отправьте текст.',
+                             reply_markup=keyboard_start())
         return
 
-    await message.answer('Вы уверены что хотите удалить все траты?', reply_markup=keyboard_accept())
+    await message.answer('Вы уверены что хотите удалить все траты?',
+                         reply_markup=keyboard_accept())
     await state.set_state(Delete.waiting_accept)
 
 @router.message(Delete.waiting_accept)
 async def delete(message: Message, state: FSMContext):
+
     if not is_valid_text(message.text):
         await state.clear()
-        await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
+        await message.answer('Неверный формат записи! Отправьте текст.',
+                             reply_markup=keyboard_start())
         return
 
     if message.text.lower() == 'отмена':
-        await message.answer('Отмена текущего действия', reply_markup=keyboard_start())
+        await message.answer('Отмена текущего действия',
+                             reply_markup=keyboard_start())
 
     elif message.text.lower() == 'да':
         if delete_all_exp(message.from_user.id) > 0:
-            await message.answer('Траты успешно удалены!', reply_markup=keyboard_start())
+            await message.answer('Траты успешно удалены!',
+                                 reply_markup=keyboard_start())
         else:
-            await message.answer('Таблица трат пуста!', reply_markup=keyboard_start())
+            await message.answer('Таблица трат пуста!',
+                                 reply_markup=keyboard_start())
 
     else:
-        await message.answer('Я тебя не понимаю', reply_markup=keyboard_start())
+        await message.answer('Я тебя не понимаю',
+                             reply_markup=keyboard_start())
     await state.clear()

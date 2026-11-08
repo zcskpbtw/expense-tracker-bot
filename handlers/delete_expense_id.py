@@ -14,7 +14,9 @@ class Delete(StatesGroup):
 
 @router.message(F.text.in_({'/delete', 'Удалить трату'}))
 async def get_expenses(message: Message, state: FSMContext) -> None:
+
     await state.clear()
+    
     if not get_list_expenses(user_id=message.from_user.id):
         await message.answer('У вас пока что не трат')
         return
@@ -25,6 +27,7 @@ async def get_expenses(message: Message, state: FSMContext) -> None:
 
 @router.message(Delete.waiting_id)
 async def process_date(message: Message, state: FSMContext) -> None:
+
     if not is_valid_text(message.text):
         await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
