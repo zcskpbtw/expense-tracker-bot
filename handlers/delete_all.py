@@ -18,7 +18,7 @@ async def get_expenses(message: Message, state: FSMContext) -> None:
     if not is_valid_text(message.text):
         await message.answer('Неверный формат записи! Отправьте текст.', reply_markup=keyboard_start())
         return
-    
+
     await message.answer('Вы уверены что хотите удалить все траты?', reply_markup=keyboard_accept())
     await state.set_state(Delete.waiting_accept)
 
