@@ -3,11 +3,36 @@ import sqlite3
 def init_db():
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
-    cur.execute('CREATE TABLE IF NOT EXISTS expenses (id INTEGER PRIMARY KEY AUTOINCREMENT,'
-                'user_id INT,'
-                'date TEXT,'
-                'category TEXT,'
-                'amount INT); ')
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS users 
+    (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    telegram_id INTEGER UNIQUE NOT NULL
+       );''')
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS categories 
+    (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+       );''')
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS expenses 
+    (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    date TEXT,
+    amount INT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+       );''')
+
     con.commit()
     con.close()
 
@@ -99,3 +124,4 @@ def delete_all_exp(user_id):
     return result
 
 
+init_db()
