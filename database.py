@@ -1,5 +1,5 @@
 import sqlite3
-
+# переход выполнен
 def init_db():
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -35,7 +35,7 @@ def init_db():
 
     con.commit()
     con.close()
-
+# переход выполнен
 def add_expense(telegram_id, date, category_name, amount):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -82,19 +82,25 @@ def add_expense(telegram_id, date, category_name, amount):
 
     con.commit()
     con.close()
+# переход выполнен
+def get_list_expenses(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
 
-def get_list_expenses(user_id):
-    con_expenses = sqlite3.connect('expenses.db')
-    cur_exp = con_expenses.cursor()
-    cur_exp.execute('SELECT id, '
-                    'date, '
-                    'category, '
-                    'amount '
-                    'FROM expenses '
-                    'WHERE user_id = ? '
-                    'ORDER BY date',(user_id,))
-    result = cur_exp.fetchall()
-    con_expenses.close()
+    cur.execute('''
+                SELECT e.id, 
+                c.name,            
+                e.amount, 
+                e.date 
+                FROM users u 
+                JOIN categories c ON c.user_id = u.id 
+                JOIN expenses e ON e.user_id = u.id 
+                AND e.category_id = c.id
+                WHERE u.telegram_id = ?
+    ''',(telegram_id,))
+    result = cur.fetchall()
+    con.close()
     return result
 
 def get_all_expenses(user_id):
@@ -132,7 +138,6 @@ def avg_expenses(user_id):
     get_avg = cur_exp.fetchall()
     con_expenses.close()
     return get_avg
-
 
 def delete_by_id(exp_id,user_id):
     con_expenses = sqlite3.connect('expenses.db')

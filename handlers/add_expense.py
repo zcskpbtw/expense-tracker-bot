@@ -7,6 +7,7 @@ from database import add_expense
 from datetime import date,datetime
 from keyboards import keyboard_add, keyboard_start, keyboard_return
 
+# переход выполнен
 router = Router(name='add')
 
 class AddExpense(StatesGroup):
