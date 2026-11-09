@@ -89,15 +89,20 @@ def get_list_expenses(telegram_id):
     cur.execute("PRAGMA foreign_keys = ON;")
 
     cur.execute('''
-                SELECT e.id, 
-                c.name,            
-                e.amount, 
-                e.date 
-                FROM users u 
-                JOIN categories c ON c.user_id = u.id 
-                JOIN expenses e ON e.user_id = u.id 
-                AND e.category_id = c.id
-                WHERE u.telegram_id = ?
+                SELECT * FROM (
+                    SELECT e.id, 
+                    c.name,            
+                    e.amount, 
+                    e.date 
+                    FROM users u 
+                    JOIN categories c ON c.user_id = u.id 
+                    JOIN expenses e ON e.user_id = u.id 
+                    AND e.category_id = c.id
+                    WHERE u.telegram_id = ?
+                    ORDER BY e.id DESC 
+                    LIMIT 10
+                )
+                ORDER BY date ASC;
     ''',(telegram_id,))
     result = cur.fetchall()
     con.close()

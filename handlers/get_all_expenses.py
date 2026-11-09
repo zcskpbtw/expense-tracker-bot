@@ -18,7 +18,7 @@ async def get_expenses(message: Message, state: FSMContext):
                              reply_markup=keyboard_start())
         return
 
-    text = 'Ваши траты за период: \n'
+    text = 'Ваши последние 10 трат: \n'
 
     for e_id, category, amount, date in expenses:
         text += f"{e_id}. {category} -- {amount} | {date} \n"
