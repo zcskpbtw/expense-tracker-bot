@@ -1,5 +1,5 @@
 import sqlite3
-# переход выполнен
+
 def init_db():
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -35,7 +35,7 @@ def init_db():
 
     con.commit()
     con.close()
-# переход выполнен
+
 def add_expense(telegram_id, date, category_name, amount):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -82,7 +82,7 @@ def add_expense(telegram_id, date, category_name, amount):
 
     con.commit()
     con.close()
-# переход выполнен
+
 def get_list_expenses(telegram_id):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -107,7 +107,7 @@ def get_list_expenses(telegram_id):
     result = cur.fetchall()
     con.close()
     return result
-# переход выполнен
+
 def get_all_expenses(telegram_id):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -123,7 +123,7 @@ def get_all_expenses(telegram_id):
     get_all = cur.fetchall()
     con.close()
     return get_all
-# переход выполнен
+
 def get_max_expense(telegram_id):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -144,7 +144,7 @@ def get_max_expense(telegram_id):
     get_all = cur.fetchall()
     con.close()
     return get_all
-# переход выполнен
+
 def avg_expenses(telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
@@ -159,24 +159,26 @@ def avg_expenses(telegram_id):
     con_expenses.close()
     return get_avg
 
-def delete_by_id(exp_id,user_id):
+def delete_by_id(exp_id,telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
-    cur_exp.execute('DELETE '
-                    'FROM expenses '
-                    'WHERE id = ? '
-                    'AND user_id = ?',(exp_id,user_id))
+    cur_exp.execute('''
+                    DELETE FROM expenses 
+                    WHERE id = ? 
+                    AND user_id = (SELECT id FROM users WHERE telegram_id = ?) 
+                    ''',(exp_id,telegram_id))
     con_expenses.commit()
     result = cur_exp.rowcount
     con_expenses.close()
     return result
 
-def delete_all_exp(user_id):
+def delete_all_exp(telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
-    cur_exp.execute('DELETE '
-                    'FROM expenses '
-                    'WHERE user_id = ?',(user_id,))
+    cur_exp.execute('''
+                    DELETE FROM expenses 
+                    WHERE user_id = (SELECT id FROM users WHERE telegram_id = ?)
+    ''',(telegram_id,))
     con_expenses.commit()
     result = cur_exp.rowcount
     con_expenses.close()

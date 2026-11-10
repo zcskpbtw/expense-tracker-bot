@@ -4,7 +4,7 @@ from aiogram.types import Message
 from database import get_list_expenses
 from keyboards import keyboard_start
 
-# переход выполнен
+
 router = Router(name='list')
 
 @router.message(F.text.in_({'/list', 'Список трат'}))

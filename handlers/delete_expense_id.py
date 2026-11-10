@@ -17,7 +17,7 @@ async def get_expenses(message: Message, state: FSMContext) -> None:
 
     await state.clear()
 
-    if not get_list_expenses(user_id=message.from_user.id):
+    if not get_list_expenses(message.from_user.id):
         await message.answer('У вас пока что не трат')
         return
 
@@ -48,7 +48,7 @@ async def process_date(message: Message, state: FSMContext) -> None:
         return
 
     if delete_by_id(exp_id=exp_id,
-                    user_id=message.from_user.id) > 0:
+                    telegram_id=message.from_user.id) > 0:
         await message.answer('Трата успешно удалена!',
                              reply_markup=keyboard_start())
     else:

@@ -3,7 +3,6 @@ from database import get_all_expenses, get_max_expense, avg_expenses, get_list_e
 from aiogram import Router, F
 from aiogram.types import Message
 
-# переход выполнен
 
 router = Router(name='stats')
 
