@@ -1,10 +1,11 @@
-from functions import is_valid_text
-from aiogram import Router, types, F
+from aiogram import Router, F
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
-from database import add_expense
+
 from datetime import date,datetime
+
+from database import add_expense
 from keyboards import keyboard_add, keyboard_start, keyboard_return
 
 
@@ -15,7 +16,7 @@ class AddExpense(StatesGroup):
     waiting_category = State()
     waiting_expense = State()
 
-
+## waiting command add
 @router.message(F.text.in_({'/add', 'Добавить трату'}))
 async def start_add(message: Message,state: FSMContext) -> None:
 
@@ -26,10 +27,11 @@ async def start_add(message: Message,state: FSMContext) -> None:
                          reply_markup=keyboard_add())
     await state.set_state(AddExpense.waiting_date)
 
+## waiting state date
 @router.message(AddExpense.waiting_date)
 async def process_date(message: Message, state: FSMContext) -> None:
 
-    if not is_valid_text(message.text):
+    if not message.text or not message.text.strip():
         await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
                              reply_markup=keyboard_start())
@@ -59,10 +61,11 @@ async def process_date(message: Message, state: FSMContext) -> None:
                          reply_markup=keyboard_return())
     await state.set_state(AddExpense.waiting_category)
 
+## waiting state category
 @router.message(AddExpense.waiting_category)
 async def process_category(message: Message, state: FSMContext) -> None:
 
-    if not is_valid_text(message.text):
+    if not message.text or not message.text.strip():
         await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
                              reply_markup=keyboard_start())
@@ -78,10 +81,11 @@ async def process_category(message: Message, state: FSMContext) -> None:
     await message.answer('Введите трату: ')
     await state.set_state(AddExpense.waiting_expense)
 
+## waiting state expense
 @router.message(AddExpense.waiting_expense)
 async def process_amount(message: Message, state: FSMContext) -> None:
 
-    if not is_valid_text(message.text):
+    if not message.text or not message.text.strip():
         await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
                              reply_markup=keyboard_start())

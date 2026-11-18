@@ -10,10 +10,12 @@ load_dotenv()
 proxy_url = os.getenv("PROXY_URL")
 token = os.getenv("BOT_TOKEN")
 
+## check token
 if not token:
     error = 'токен не найден! проверь файл .env'
     raise ValueError(error)
 
+## include session api
 session = AiohttpSession(api=TelegramAPIServer.from_base(proxy_url))
 bot = Bot(token=token,session=session)
 dp = Dispatcher()

@@ -2,12 +2,13 @@ from aiogram import Router,types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
+
 from keyboards import keyboard_start
 
 
 router = Router(name='start')
 
-
+## waiting command start
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext) -> None:
 
@@ -17,15 +18,17 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
                          'Для помощи: /help',
                          reply_markup=keyboard_start())
 
+## waiting command help
 @router.message(Command('help'))
 async def cmd_help(message: Message, state: FSMContext) -> None:
 
     await state.clear()
 
-    await message.answer('/start - Перезапустить бота \n'
-                         '/help  - Помощь \n'
+    await message.answer('/start - Запустить бота \n'
+                         '/help - Помощь \n'
+                         '/add - Добавить трату \n'
                          '/stats - Посмотреть статистику \n'
-                         '/add   - Добавить трату \n'
-                         '/list  - Список для удаления \n'
-                         '/delete  - Удалить трату \n'
-                         '/delete_all - Удалить все траты \n')
+                         '/chart - Построить диаграмму трат \n'
+                         '/list - Список трат \n'
+                         '/delete - Удалить трату \n'
+                         '/delete_all - Удалить все траты')

@@ -17,25 +17,21 @@ def create_pie_chart(data):
     explode = [0.0] * len(amounts)
     explode[max_index] = 0.1
 
-    # --- НОВАЯ ЛОГИКА ДЛЯ ЛЕГЕНДЫ ---
-    # Формируем список подписей для легенды: "Категория (Сумма руб.)"
     legend_labels = [f"{cat} ({amt} руб.)" for cat, amt in zip(categories, amounts)]
-    # --------------------------------
 
     wedges, texts, autotexts = ax.pie(
         amounts,
         explode=explode,
         colors=colors,
-        autopct='%1.1f%%',  # <--- Возвращаем стандартные проценты
+        autopct='%1.1f%%',
         startangle=140,
-        pctdistance=0.75,  # <--- Возвращаем стандартное положение процентов
-        textprops={'color': "w", 'fontsize': 12}  # Белый шрифт
+        pctdistance=0.75,
+        textprops={'color': "w", 'fontsize': 12}
     )
 
-    # Используем legend_labels вместо categories
     ax.legend(
         wedges,
-        legend_labels,  # <--- Вставляем новые подписи с суммами
+        legend_labels,
         title="Категории",
         loc="center left",
         bbox_to_anchor=(1, 0, 0.5, 1),

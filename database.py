@@ -1,5 +1,7 @@
 import sqlite3
 
+
+## add .bd
 def init_db():
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -36,6 +38,7 @@ def init_db():
     con.commit()
     con.close()
 
+## add
 def add_expense(telegram_id, date, category_name, amount):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -83,6 +86,79 @@ def add_expense(telegram_id, date, category_name, amount):
     con.commit()
     con.close()
 
+## stats
+def get_all_expenses(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                SELECT SUM (e.amount), 
+                    COUNT (DISTINCT e.date) 
+                FROM expenses e 
+                JOIN users u ON u.id = e.user_id 
+                AND u.telegram_id = ?;
+    ''', (telegram_id,))
+    res = cur.fetchall()
+    con.close()
+    return res
+
+def get_max_expense(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                SELECT e.date, 
+                    c.name, 
+                    e.amount 
+                FROM expenses e 
+                JOIN categories c ON c.id = e.category_id 
+                JOIN users u ON u.id = e.user_id 
+                AND u.telegram_id = ? 
+                ORDER BY amount DESC 
+                LIMIT 1;
+                
+        ''', (telegram_id,))
+    res = cur.fetchall()
+    con.close()
+    return res
+
+def get_avg_expenses(telegram_id):
+    con_expenses = sqlite3.connect('expenses.db')
+    cur_exp = con_expenses.cursor()
+    cur_exp.execute('''
+                    SELECT SUM(e.amount), 
+                        COUNT(DISTINCT e.date)
+                    FROM expenses e
+                    JOIN users u ON u.id = e.user_id
+                    WHERE u.telegram_id = ?             
+    ''', (telegram_id,))
+    res = cur_exp.fetchall()
+    con_expenses.close()
+    return res
+
+## chart
+def get_expenses_for_chart(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                    SELECT c.name, 
+                        SUM(e.amount) sum_amounts
+                    FROM expenses e 
+                    JOIN categories c ON c.id = e.category_id 
+                    JOIN users u ON u.id = e.user_id 
+                    WHERE u.telegram_id =  ? 
+                    GROUP BY c.name 
+                    ORDER BY sum_amounts DESC ;
+            ''', (telegram_id,))
+    res = cur.fetchall()
+    con.close()
+    return res
+
+## list
 def get_list_expenses(telegram_id):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
@@ -104,62 +180,12 @@ def get_list_expenses(telegram_id):
                 )
                 ORDER BY date ASC;
     ''',(telegram_id,))
-    result = cur.fetchall()
+    res = cur.fetchall()
     con.close()
-    return result
+    return res
 
-def get_all_expenses(telegram_id):
-    con = sqlite3.connect('expenses.db')
-    cur = con.cursor()
-    cur.execute("PRAGMA foreign_keys = ON;")
-
-    cur.execute('''
-                SELECT SUM (e.amount), 
-                    COUNT (DISTINCT e.date) 
-                FROM expenses e 
-                JOIN users u ON u.id = e.user_id 
-                AND u.telegram_id = ?;
-    ''', (telegram_id,))
-    get_all = cur.fetchall()
-    con.close()
-    return get_all
-
-def get_max_expense(telegram_id):
-    con = sqlite3.connect('expenses.db')
-    cur = con.cursor()
-    cur.execute("PRAGMA foreign_keys = ON;")
-
-    cur.execute('''
-                SELECT e.date, 
-                    c.name, 
-                    e.amount 
-                FROM expenses e 
-                JOIN categories c ON c.id = e.category_id 
-                JOIN users u ON u.id = e.user_id 
-                AND u.telegram_id = ? 
-                ORDER BY amount DESC 
-                LIMIT 1;
-                
-        ''', (telegram_id,))
-    get_all = cur.fetchall()
-    con.close()
-    return get_all
-
-def avg_expenses(telegram_id):
-    con_expenses = sqlite3.connect('expenses.db')
-    cur_exp = con_expenses.cursor()
-    cur_exp.execute('''
-                    SELECT SUM(e.amount), 
-                        COUNT(DISTINCT e.date)
-                    FROM expenses e
-                    JOIN users u ON u.id = e.user_id
-                    WHERE u.telegram_id = ?             
-    ''', (telegram_id,))
-    get_avg = cur_exp.fetchall()
-    con_expenses.close()
-    return get_avg
-
-def delete_by_id(exp_id,telegram_id):
+## delete
+def delete_id_expense(exp_id,telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
     cur_exp.execute('''
@@ -168,11 +194,11 @@ def delete_by_id(exp_id,telegram_id):
                     AND user_id = (SELECT id FROM users WHERE telegram_id = ?) 
                     ''',(exp_id,telegram_id))
     con_expenses.commit()
-    result = cur_exp.rowcount
+    res = cur_exp.rowcount
     con_expenses.close()
-    return result
+    return res
 
-def delete_all_exp(telegram_id):
+def delete_all_expenses(telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
     cur_exp.execute('''
@@ -180,25 +206,6 @@ def delete_all_exp(telegram_id):
                     WHERE user_id = (SELECT id FROM users WHERE telegram_id = ?)
     ''',(telegram_id,))
     con_expenses.commit()
-    result = cur_exp.rowcount
+    res = cur_exp.rowcount
     con_expenses.close()
-    return result
-
-def get_expenses_for_chart(telegram_id):
-    con = sqlite3.connect('expenses.db')
-    cur = con.cursor()
-    cur.execute("PRAGMA foreign_keys = ON;")
-
-    cur.execute('''
-                    SELECT c.name, 
-                        SUM(e.amount) sum_amounts
-                    FROM expenses e 
-                    JOIN categories c ON c.id = e.category_id 
-                    JOIN users u ON u.id = e.user_id 
-                    WHERE u.telegram_id =  ? 
-                    GROUP BY c.name 
-                    ORDER BY sum_amounts DESC ;
-            ''', (telegram_id,))
-    res = cur.fetchall()
-    con.close()
     return res

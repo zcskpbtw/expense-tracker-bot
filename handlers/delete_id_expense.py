@@ -4,11 +4,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import asyncio
 
-from database import delete_by_id, get_list_expenses
+from database import delete_id_expense, get_list_expenses
 from keyboards import keyboard_start
 
 router = Router(name='delete')
 
+## waiting command delete
 @router.message(F.text.in_({'/delete', 'Удалить трату'}))
 async def get_expenses(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -35,12 +36,12 @@ async def get_expenses(message: Message, state: FSMContext) -> None:
 
     await message.answer(text,  reply_markup=builder.as_markup())
 
-
+## waiting delete_id
 @router.callback_query(F.data.startswith("delete_"))
 async def process_delete_callback(callback: CallbackQuery) -> None:
     real_exp_id = int(callback.data.split("_")[1])
 
-    if delete_by_id(exp_id=real_exp_id, telegram_id=callback.from_user.id) > 0:
+    if delete_id_expense(exp_id=real_exp_id, telegram_id=callback.from_user.id) > 0:
         await callback.message.edit_text('Удаляю трату...')
         await asyncio.sleep(1)
         await callback.message.edit_text(f'Трата id:{real_exp_id} успешно удалена!')

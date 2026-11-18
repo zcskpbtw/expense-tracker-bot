@@ -1,12 +1,14 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+
 from database import get_list_expenses
 from keyboards import keyboard_start
 
 
 router = Router(name='list')
 
+## waiting command list
 @router.message(F.text.in_({'/list', 'Список трат'}))
 async def get_expenses(message: Message, state: FSMContext):
 

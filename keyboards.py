@@ -33,8 +33,7 @@ def keyboard_return():
     ]
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=kb,
-        resize_keyboard=True,
-        input_field_placeholder='Введите айди траты:'
+        resize_keyboard=True
     )
     return keyboard
 
