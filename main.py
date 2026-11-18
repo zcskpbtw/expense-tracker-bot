@@ -1,9 +1,11 @@
 import asyncio
 from config import dp,bot
+from database import init_db
 from handlers import start,fallback,add_expense,get_all_expenses,delete_expense_id,stats,delete_all,chart
 
 
 async def main() -> None:
+    init_db()
     dp.include_router(start.router)
     dp.include_router(add_expense.router)
     dp.include_router(get_all_expenses.router)
