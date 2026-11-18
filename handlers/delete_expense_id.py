@@ -1,58 +1,52 @@
-from aiogram import Router, F
-from aiogram.types import Message
+from aiogram import Router, F, types
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from database import delete_by_id,get_list_expenses
-from functions import is_valid_text
-from keyboards import keyboard_start,keyboard_return
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+import asyncio
 
+from database import delete_by_id, get_list_expenses
+from keyboards import keyboard_start
 
 router = Router(name='delete')
 
-class Delete(StatesGroup):
-    waiting_id = State()
-
 @router.message(F.text.in_({'/delete', 'Удалить трату'}))
 async def get_expenses(message: Message, state: FSMContext) -> None:
-
     await state.clear()
 
-    if not get_list_expenses(message.from_user.id):
-        await message.answer('У вас пока что не трат')
+    expenses = get_list_expenses(telegram_id=message.from_user.id)
+    if not expenses:
+        await message.answer('У вас пока что нет трат', reply_markup=keyboard_start())
         return
 
-    await message.answer('Введите айди траты которую хотите удалить',
-                         reply_markup=keyboard_return())
-    await state.set_state(Delete.waiting_id)
+    text = ''
+    builder = InlineKeyboardBuilder()
 
-@router.message(Delete.waiting_id)
-async def process_date(message: Message, state: FSMContext) -> None:
+    for cnt, (e_id, category, amount, date) in enumerate(expenses, start=1):
+        text += f"{cnt}. {category} -- {amount} | {date}\n"
 
-    if not is_valid_text(message.text):
-        await state.clear()
-        await message.answer('Неверный формат записи! Отправьте текст.',
-                             reply_markup=keyboard_start())
-        return
+        builder.add(types.InlineKeyboardButton(
+            text=str(cnt),
+            callback_data=f"delete_{e_id}"
+        ))
 
-    if message.text.lower() == 'отмена':
-        await state.clear()
-        await message.answer('Отмена текущего действия',
-                             reply_markup=keyboard_start())
-        return
+    builder.adjust(3)
+    text = f'Ваши последние траты ({len(expenses)}):\n' + text
+    text += '\n\nВыберите номер траты, которую хотите удалить:'
 
-    try:
-        exp_id = int(message.text)
-    except ValueError:
-        await message.answer('Ошибка! Введите айди!',
-                             reply_markup=keyboard_start())
-        return
+    await message.answer(text,  reply_markup=builder.as_markup())
 
-    if delete_by_id(exp_id=exp_id,
-                    telegram_id=message.from_user.id) > 0:
-        await message.answer('Трата успешно удалена!',
-                             reply_markup=keyboard_start())
+
+@router.callback_query(F.data.startswith("delete_"))
+async def process_delete_callback(callback: CallbackQuery) -> None:
+    real_exp_id = int(callback.data.split("_")[1])
+
+    if delete_by_id(exp_id=real_exp_id, telegram_id=callback.from_user.id) > 0:
+        await callback.message.edit_text('Удаляю трату...')
+        await asyncio.sleep(1)
+        await callback.message.edit_text(f'Трата id:{real_exp_id} успешно удалена!')
     else:
-        await message.answer('Нет траты с таким айди',
-                             reply_markup=keyboard_start())
+        await callback.message.edit_text('Удаляю трату...')
+        await asyncio.sleep(1)
+        await callback.message.edit_text('Ошибка: трата не найдена или уже удалена.')
 
-    await state.clear()
+    await callback.answer()
