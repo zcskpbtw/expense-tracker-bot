@@ -16,6 +16,7 @@ def keyboard_start():
     kb = [
         [types.KeyboardButton(text='Добавить трату')],
         [types.KeyboardButton(text='Статистика')],
+        [types.KeyboardButton(text='График')],
         [types.KeyboardButton(text='Список трат')],
         [types.KeyboardButton(text='Удалить трату')]
     ]

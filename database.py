@@ -183,3 +183,22 @@ def delete_all_exp(telegram_id):
     result = cur_exp.rowcount
     con_expenses.close()
     return result
+
+def get_expenses_for_chart(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                    SELECT c.name, 
+                        SUM(e.amount) sum_amounts
+                    FROM expenses e 
+                    JOIN categories c ON c.id = e.category_id 
+                    JOIN users u ON u.id = e.user_id 
+                    WHERE u.telegram_id =  ? 
+                    GROUP BY c.name 
+                    ORDER BY sum_amounts DESC ;
+            ''', (telegram_id,))
+    res = cur.fetchall()
+    con.close()
+    return res
