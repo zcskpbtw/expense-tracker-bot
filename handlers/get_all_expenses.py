@@ -18,9 +18,11 @@ async def get_expenses(message: Message, state: FSMContext):
                              reply_markup=keyboard_start())
         return
 
-    text = 'Ваши последние 10 трат: \n'
+    text = ''
 
-    for e_id, category, amount, date in expenses:
-        text += f"{e_id}. {category} -- {amount} | {date} \n"
+    for cnt, (e_id, category, amount, date) in enumerate(expenses, start=1):
+        text += f"{cnt}. {category} -- {amount} | {date}\n"
+
+    text = f'Ваши последние траты ({len(expenses)}):\n' + text
 
     await message.answer(text)
