@@ -181,3 +181,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 keyboards.py~
+expenses_in_db.py
