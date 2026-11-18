@@ -16,6 +16,6 @@ if not token:
     raise ValueError(error)
 
 ## include session api
-session = AiohttpSession(api=TelegramAPIServer.from_base(proxy_url))
+session = AiohttpSession(api=TelegramAPIServer.from_base(proxy_url), timeout=20)
 bot = Bot(token=token,session=session)
 dp = Dispatcher()
