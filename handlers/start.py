@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart, Command
 
 from keyboards import keyboard_start
-
+from database import set_default_categories
 
 router = Router(name='start')
 
@@ -13,6 +13,8 @@ router = Router(name='start')
 async def cmd_start(message: Message, state: FSMContext) -> None:
 
     await state.clear()
+
+    set_default_categories(message.from_user.id)
 
     await message.answer('Привет! Я твой бот для учета трат, что-бы добавить трату или посмотреть статистику, жми на кнопки!\n\n'
                          'Для помощи: /help',
