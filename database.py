@@ -35,6 +35,23 @@ def init_db():
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
        );''')
 
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS users_limits 
+    (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    limit_global INT
+           );''')
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS users_limits_categories 
+    (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    limit_category INT
+               );''')
+
     con.commit()
     con.close()
 
@@ -184,7 +201,58 @@ def get_list_expenses(telegram_id):
     con.close()
     return res
 
+## limit
+# def set_global_limit(telegram_id):
+#     con = sqlite3.connect('expenses.db')
+#     cur = con.cursor()
+#     cur.execute("PRAGMA foreign_keys = ON;")
+#
+#     cur.execute('''
+#                     SELECT id
+#                     FROM users
+#                     WHERE telegram_id = ?
+#         ''', (telegram_id,))
+#
+#     user_row = cur.fetchone()
+#     if user_row is None:
+#         cur.execute('''
+#                         INSERT INTO users (telegram_id)
+#                         VALUES (?)
+#             ''', (telegram_id,))
+#         user_id_db = cur.lastrowid
+#     else:
+#         user_id_db = user_row[0]
+#
+#     cur.execute('''
+#                     SELECT id
+#                     FROM categories
+#                     WHERE user_id = ?
+#                     AND name = ?
+#         ''', (user_id_db, category_name))
+#
+#     cat_row = cur.fetchone()
+#     if cat_row is None:
+#         cur.execute('''
+#                         INSERT INTO categories (user_id, name)
+#                         VALUES (?,?)
+#             ''', (user_id_db, category_name))
+#         category_id_db = cur.lastrowid
+#     else:
+#         category_id_db = cat_row[0]
+#
+#     cur.execute('''
+#                     INSERT INTO expenses (user_id, category_id, date, amount)
+#                     VALUES (?,?,?,?)
+#         ''', (user_id_db, category_id_db, date, amount))
+#
+#     con.commit()
+#     con.close()
+#
+# def set_category_limit(telegram_id, category, limit):
+
+
 ## delete
+
 def delete_id_expense(exp_id,telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
