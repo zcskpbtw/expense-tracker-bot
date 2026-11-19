@@ -103,6 +103,85 @@ def add_expense(telegram_id, date, category_name, amount):
     con.commit()
     con.close()
 
+def add_user_category(telegram_id, name):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    name = name.strip().capitalize()
+
+    cur.execute('''
+                    SELECT id 
+                    FROM users 
+                    WHERE telegram_id = ?
+        ''', (telegram_id,))
+
+    user_row = cur.fetchone()
+    if user_row is None:
+        cur.execute('''
+                        INSERT INTO users (telegram_id) 
+                        VALUES (?)
+            ''', (telegram_id,))
+        user_id_db = cur.lastrowid
+    else:
+        user_id_db = user_row[0]
+
+    cur.execute('''
+                    SELECT COUNT(*) 
+                    FROM categories 
+                    WHERE user_id = ?
+        ''', (user_id_db,))
+
+    if cur.fetchone()[0] >= 9:
+        con.close()
+        return 'limit'
+
+    cur.execute('''
+                    SELECT 1 
+                    FROM categories 
+                    WHERE user_id = ? 
+                    AND name = ?
+    ''', (user_id_db, name))
+
+    if cur.fetchone() is not None:
+        con.close()
+        return 'exists'
+
+    cur.execute('''
+                    INSERT INTO categories (user_id, name) 
+                    VALUES (?,?) 
+        ''', (user_id_db, name))
+
+    res = 'ok'
+    con.commit()
+    con.close()
+
+    return res
+
+## for keyboard
+def get_user_categories(telegram_id):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                    SELECT name 
+                    FROM categories 
+                    WHERE user_id = (
+                        SELECT id 
+                        FROM users 
+                        WHERE telegram_id = ?
+                        )
+    ''',(telegram_id,))
+    rows = cur.fetchall()
+
+    row = [row[0] for row in rows ]
+
+    con.commit()
+    con.close()
+
+    return row
+
 ## default categories
 def set_default_categories(telegram_id):
     con = sqlite3.connect('expenses.db')
@@ -234,10 +313,10 @@ def get_list_expenses(telegram_id):
                     JOIN expenses e ON e.user_id = u.id 
                     AND e.category_id = c.id
                     WHERE u.telegram_id = ?
-                    ORDER BY e.id DESC 
+                    ORDER BY e.id DESC
                     LIMIT 10
                 )
-                ORDER BY date ASC;
+                ORDER BY id ASC;
     ''',(telegram_id,))
     res = cur.fetchall()
     con.close()

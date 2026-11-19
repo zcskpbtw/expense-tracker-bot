@@ -1,4 +1,7 @@
 from aiogram import types
+from aiogram.types import KeyboardButton
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
+
 
 def keyboard_add():
     kb = [
@@ -47,3 +50,25 @@ def keyboard_accept():
         resize_keyboard=True
     )
     return keyboard
+
+def keyboard_categories(categories: list[str]):
+    builder = ReplyKeyboardBuilder()
+
+    for category in categories:
+        builder.button(text=category)
+
+
+    builder.adjust(3)
+
+
+    btn1 = KeyboardButton(text='Добавить категорию')
+    btn2 = KeyboardButton(text='Удалить категорию')
+
+    if len(categories) < 9:
+        builder.row(btn1,btn2)
+    else:
+        builder.row(btn2)
+
+    builder.row(KeyboardButton(text='Отмена'))
+
+    return builder.as_markup(resize_keyboard=True)

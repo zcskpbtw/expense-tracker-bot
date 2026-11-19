@@ -25,6 +25,6 @@ async def get_expenses(message: Message, state: FSMContext):
     for cnt, (e_id, category, amount, date) in enumerate(expenses, start=1):
         text += f"{cnt}. {category} -- {amount} | {date}\n"
 
-    text = f'Ваши последние траты ({len(expenses)}):\n' + text
+    text = f'Ваши последние добавленные траты ({len(expenses)}):\n' + text
 
     await message.answer(text)

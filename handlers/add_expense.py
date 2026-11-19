@@ -5,9 +5,8 @@ from aiogram.fsm.state import StatesGroup, State
 
 from datetime import date,datetime
 
-from database import add_expense
-from keyboards import keyboard_add, keyboard_start, keyboard_return
-
+from database import add_expense, get_user_categories, add_user_category
+from keyboards import keyboard_add, keyboard_start, keyboard_return, keyboard_categories
 
 router = Router(name='add')
 
@@ -15,6 +14,9 @@ class AddExpense(StatesGroup):
     waiting_date = State()
     waiting_category = State()
     waiting_expense = State()
+    waiting_new_category = State()
+    waiting_delete_category = State()
+
 
 ## waiting command add
 @router.message(F.text.in_({'/add', 'Добавить трату'}))
@@ -22,10 +24,12 @@ async def start_add(message: Message,state: FSMContext) -> None:
 
     await state.clear()
 
+
     await message.answer("Введите дату траты \n"
                          "Пример: сегодня или 2026 01 01 ",
                          reply_markup=keyboard_add())
     await state.set_state(AddExpense.waiting_date)
+
 
 ## waiting state date
 @router.message(AddExpense.waiting_date)
@@ -58,17 +62,35 @@ async def process_date(message: Message, state: FSMContext) -> None:
             return
 
     await message.answer('Введите категорию траты: ',
-                         reply_markup=keyboard_return())
+                         reply_markup=keyboard_categories(get_user_categories(message.from_user.id)))
+
     await state.set_state(AddExpense.waiting_category)
 
+
 ## waiting state category
-@router.message(AddExpense.waiting_category)
-async def process_category(message: Message, state: FSMContext) -> None:
+@router.message(AddExpense.waiting_category, F.text == 'Добавить категорию')
+async def process_add_category(message: Message, state: FSMContext) -> None:
+    categories = get_user_categories(message.from_user.id)
+
+    if len(categories) >= 9:
+        await message.answer('Вы уже привысили лимит категорий!',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+    await message.answer('Введите название новой категории (до 20 символов):',
+                         reply_markup=keyboard_return())
+
+
+    await state.set_state(AddExpense.waiting_new_category)
+
+
+@router.message(AddExpense.waiting_new_category)
+async def save_new_category(message: Message, state: FSMContext) -> None:
+    categories = get_user_categories(message.from_user.id)
 
     if not message.text or not message.text.strip():
-        await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
-                             reply_markup=keyboard_start())
+                             reply_markup=keyboard_categories(categories))
         return
 
     if message.text.lower() == 'отмена':
@@ -77,8 +99,59 @@ async def process_category(message: Message, state: FSMContext) -> None:
                              reply_markup=keyboard_start())
         return
 
-    await state.update_data(category=message.text)
-    await message.answer('Введите трату: ')
+    if len(message.text) > 20:
+        await message.answer('Название категории больше 20 символов!')
+        return
+
+    res = add_user_category(message.from_user.id, message.text)
+
+    if res == 'ok':
+        await message.answer(f'Категория {message.text} успешно добавлена!\n\n Можете добавить трату!',
+                             reply_markup=keyboard_return())
+        await state.update_data(category=message.text.strip().capitalize())
+        await state.set_state(AddExpense.waiting_expense)
+    elif res == 'exists':
+        await message.answer(f'Категория {message.text} уже существует!\n\n Можете добавить трату!',
+                             reply_markup=keyboard_return())
+        await state.update_data(category=message.text.strip().capitalize())
+        await state.set_state(AddExpense.waiting_expense)
+    elif res == 'limit':
+        await state.clear()
+        await message.answer(f'Превышен лимит категорий!',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+
+@router.message(AddExpense.waiting_category, F.text == 'Удалить категорию')
+async def process_delete_category(message: Message, state: FSMContext) -> None:
+    return
+
+
+@router.message(AddExpense.waiting_category)
+async def process_category(message: Message, state: FSMContext) -> None:
+
+    categories = get_user_categories(message.from_user.id)
+
+    if not message.text or not message.text.strip():
+        await message.answer('Неверный формат записи! Нажмите на кнопку.',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+    if message.text.lower() == 'отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия',
+                             reply_markup=keyboard_start())
+        return
+
+
+    if message.text not in categories:
+        await message.answer('Пожалуйста, выберите категорию с помощью кнопок ниже 👇',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+    await state.update_data(category=message.text.strip().capitalize())
+    await message.answer('Введите трату: ',
+                         reply_markup=keyboard_return())
     await state.set_state(AddExpense.waiting_expense)
 
 ## waiting state expense
