@@ -72,3 +72,17 @@ def keyboard_categories(categories: list[str]):
     builder.row(KeyboardButton(text='Отмена'))
 
     return builder.as_markup(resize_keyboard=True)
+
+def keyboard_delete_categories(categories: list[str]):
+    builder = ReplyKeyboardBuilder()
+
+    for category in categories:
+        builder.button(text=category)
+
+
+    builder.adjust(3)
+
+
+    builder.row(KeyboardButton(text='Отмена'))
+
+    return builder.as_markup(resize_keyboard=True)

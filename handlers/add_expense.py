@@ -1,3 +1,4 @@
+from IPython.terminal.shortcuts.auto_suggest import accept
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -5,8 +6,9 @@ from aiogram.fsm.state import StatesGroup, State
 
 from datetime import date,datetime
 
-from database import add_expense, get_user_categories, add_user_category
-from keyboards import keyboard_add, keyboard_start, keyboard_return, keyboard_categories
+from database import add_expense, get_user_categories, add_user_category, delete_category_expenses
+from keyboards import keyboard_add, keyboard_start, keyboard_return, keyboard_categories, keyboard_delete_categories, \
+    keyboard_accept
 
 router = Router(name='add')
 
@@ -16,6 +18,7 @@ class AddExpense(StatesGroup):
     waiting_expense = State()
     waiting_new_category = State()
     waiting_delete_category = State()
+    waiting_confirm_delete = State()
 
 
 ## waiting command add
@@ -124,7 +127,78 @@ async def save_new_category(message: Message, state: FSMContext) -> None:
 
 @router.message(AddExpense.waiting_category, F.text == 'Удалить категорию')
 async def process_delete_category(message: Message, state: FSMContext) -> None:
-    return
+    categories = get_user_categories(message.from_user.id)
+
+    await message.answer('Какую категорию удалить?',
+                         reply_markup=keyboard_delete_categories(categories))
+
+    await state.set_state(AddExpense.waiting_delete_category)
+
+@router.message(AddExpense.waiting_delete_category)
+async def delete_category(message: Message, state: FSMContext) -> None:
+    categories = get_user_categories(message.from_user.id)
+
+    if len(categories) <= 1:
+        await state.clear()
+        await message.answer('Нельзя удалить последнюю категорию! Для начала добавьте еще одну.',
+                             reply_markup=keyboard_start())
+        return
+
+    if not message.text or not message.text.strip():
+        await message.answer('Неверный формат записи! Отправьте текст.',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+    if message.text.lower() == 'отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия',
+                             reply_markup=keyboard_start())
+        return
+
+    if message.text not in categories:
+        await message.answer('Выберите категорию из списка!',
+                             reply_markup=keyboard_delete_categories(categories))
+        return
+
+    await message.answer('Вы действительно хотите удалить категорию и ВСЕ траты в ней?',
+                         reply_markup=keyboard_accept())
+
+    await state.update_data(accept=message.text.strip().capitalize())
+    await state.set_state(AddExpense.waiting_confirm_delete)
+
+
+@router.message(AddExpense.waiting_confirm_delete)
+async def delete(message: Message, state: FSMContext) -> None:
+    categories = get_user_categories(message.from_user.id)
+    data = await state.get_data()
+    cat_to_delete = data['accept']
+
+    if not message.text or not message.text.strip():
+        await message.answer('Неверный формат записи! Отправьте текст.',
+                             reply_markup=keyboard_categories(categories))
+        return
+
+    if message.text.strip().capitalize() == 'Да':
+        if delete_category_expenses(message.from_user.id, cat_to_delete) > 0:
+            await state.clear()
+            await message.answer(f'Успешно удалена категория {cat_to_delete} !',
+                                 reply_markup=keyboard_start())
+            return
+        else:
+            await state.clear()
+            await message.answer('Ошибка!',
+                                 reply_markup=keyboard_start())
+            return
+    elif message.text.strip().capitalize() == 'Отмена':
+        await state.clear()
+        await message.answer('Отмена текущего действия',
+                             reply_markup=keyboard_start())
+    else:
+        await message.answer('Нажми на кнопки!',
+                             reply_markup=keyboard_delete_categories(categories))
+
+
+
 
 
 @router.message(AddExpense.waiting_category)

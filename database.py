@@ -10,46 +10,49 @@ def init_db():
     cur.execute('''
     CREATE TABLE IF NOT EXISTS users 
     (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    telegram_id INTEGER UNIQUE NOT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    telegram_id INTEGER UNIQUE NOT NULL 
        );''')
 
     cur.execute('''
     CREATE TABLE IF NOT EXISTS categories 
     (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER NOT NULL, 
+    name TEXT NOT NULL, 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE 
        );''')
 
     cur.execute('''
     CREATE TABLE IF NOT EXISTS expenses 
     (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    date TEXT,
-    amount INT,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER NOT NULL, 
+    category_id INTEGER NOT NULL, 
+    date TEXT, 
+    amount INT, 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, 
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE 
        );''')
 
     cur.execute('''
     CREATE TABLE IF NOT EXISTS users_limits 
     (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    limit_global INT
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER UNIQUE NOT NULL, 
+    limit_global INT 
            );''')
 
     cur.execute('''
     CREATE TABLE IF NOT EXISTS users_limits_categories 
     (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    limit_category INT
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER NOT NULL, 
+    category_id INTEGER NOT NULL, 
+    limit_category INT, 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, 
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE, 
+    UNIQUE(user_id, category_id)
                );''')
 
     con.commit()
@@ -375,26 +378,43 @@ def get_list_expenses(telegram_id):
 ## delete
 
 def delete_id_expense(exp_id,telegram_id):
-    con_expenses = sqlite3.connect('expenses.db')
-    cur_exp = con_expenses.cursor()
-    cur_exp.execute('''
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute('''
                     DELETE FROM expenses 
                     WHERE id = ? 
                     AND user_id = (SELECT id FROM users WHERE telegram_id = ?) 
                     ''',(exp_id,telegram_id))
-    con_expenses.commit()
-    res = cur_exp.rowcount
-    con_expenses.close()
+    con.commit()
+    res = cur.rowcount
+    con.close()
+    return res
+
+def delete_category_expenses(telegram_id, category):
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
+    cur.execute('''
+                    DELETE FROM categories 
+                    WHERE user_id = (SELECT id 
+                                     FROM users 
+                                     WHERE telegram_id = ?) 
+                    AND name = ?
+                        ''', (telegram_id, category))
+    con.commit()
+    res = cur.rowcount
+    con.close()
     return res
 
 def delete_all_expenses(telegram_id):
-    con_expenses = sqlite3.connect('expenses.db')
-    cur_exp = con_expenses.cursor()
-    cur_exp.execute('''
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
+    cur.execute('''
                     DELETE FROM expenses 
                     WHERE user_id = (SELECT id FROM users WHERE telegram_id = ?)
     ''',(telegram_id,))
-    con_expenses.commit()
-    res = cur_exp.rowcount
-    con_expenses.close()
+    con.commit()
+    res = cur.rowcount
+    con.close()
     return res
