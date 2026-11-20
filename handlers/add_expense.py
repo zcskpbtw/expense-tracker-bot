@@ -8,6 +8,7 @@ from datetime import date,datetime
 from database import add_expense, get_user_categories, add_user_category, delete_category_expenses
 from keyboards import keyboard_add, keyboard_start, keyboard_return, keyboard_categories, keyboard_delete_categories, \
     keyboard_accept
+from utils import message_check, message_back
 
 router = Router(name='add')
 
@@ -37,13 +38,14 @@ async def start_add(message: Message,state: FSMContext) -> None:
 @router.message(AddExpense.waiting_date)
 async def process_date(message: Message, state: FSMContext) -> None:
 
-    if not message.text or not message.text.strip():
+
+    if message_check(message.text) is True:
         await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
                              reply_markup=keyboard_start())
         return
 
-    if message.text.lower() == 'отмена':
+    if message_back(message.text) is True:
         await state.clear()
         await message.answer('Отмена текущего действия',
                              reply_markup=keyboard_start())
@@ -52,7 +54,6 @@ async def process_date(message: Message, state: FSMContext) -> None:
     elif message.text.lower() == 'сегодня':
         msg = date.today().strftime('%Y-%m-%d')
         await state.update_data(date=msg)
-
     else:
         msg = message.text.replace(' ','-')
         try:
@@ -90,12 +91,13 @@ async def process_add_category(message: Message, state: FSMContext) -> None:
 async def save_new_category(message: Message, state: FSMContext) -> None:
     categories = get_user_categories(message.from_user.id)
 
-    if not message.text or not message.text.strip():
+    if message_check(message.text) is True:
+        await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
-                             reply_markup=keyboard_categories(categories))
+                             reply_markup=keyboard_start())
         return
 
-    if message.text.lower() == 'отмена':
+    if message_back(message.text) is True:
         await state.clear()
         await message.answer('Отмена текущего действия',
                              reply_markup=keyboard_start())
@@ -143,12 +145,13 @@ async def delete_category(message: Message, state: FSMContext) -> None:
                              reply_markup=keyboard_start())
         return
 
-    if not message.text or not message.text.strip():
+    if message_check(message.text) is True:
+        await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
-                             reply_markup=keyboard_categories(categories))
+                             reply_markup=keyboard_start())
         return
 
-    if message.text.lower() == 'отмена':
+    if message_back(message.text) is True:
         await state.clear()
         await message.answer('Отмена текущего действия',
                              reply_markup=keyboard_start())
@@ -172,9 +175,10 @@ async def delete(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     cat_to_delete = data['accept']
 
-    if not message.text or not message.text.strip():
+    if message_check(message.text) is True:
+        await state.clear()
         await message.answer('Неверный формат записи! Отправьте текст.',
-                             reply_markup=keyboard_categories(categories))
+                             reply_markup=keyboard_start())
         return
 
     if message.text.strip().capitalize() == 'Да':
@@ -188,7 +192,7 @@ async def delete(message: Message, state: FSMContext) -> None:
             await message.answer('Ошибка!',
                                  reply_markup=keyboard_start())
             return
-    elif message.text.strip().capitalize() == 'Отмена':
+    elif message_back(message.text) is True:
         await state.clear()
         await message.answer('Отмена текущего действия',
                              reply_markup=keyboard_start())
