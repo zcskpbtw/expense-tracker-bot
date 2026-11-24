@@ -180,7 +180,6 @@ def get_user_categories(telegram_id):
 
     row = [row[0] for row in rows ]
 
-    con.commit()
     con.close()
 
     return row
@@ -268,6 +267,8 @@ def get_max_expense(telegram_id):
 def get_avg_expenses(telegram_id):
     con_expenses = sqlite3.connect('expenses.db')
     cur_exp = con_expenses.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
     cur_exp.execute('''
                     SELECT SUM(e.amount), 
                         COUNT(DISTINCT e.date)
@@ -380,6 +381,8 @@ def get_list_expenses(telegram_id):
 def delete_id_expense(exp_id,telegram_id):
     con = sqlite3.connect('expenses.db')
     cur = con.cursor()
+    cur.execute("PRAGMA foreign_keys = ON;")
+
     cur.execute('''
                     DELETE FROM expenses 
                     WHERE id = ? 

@@ -61,7 +61,7 @@ async def process_date(message: Message, state: FSMContext) -> None:
             await state.update_data(date=valid_date.strftime('%Y-%m-%d'))
         except ValueError:
             await message.answer('Введена некорректная дата',
-                                 reply_markup=keyboard_start())
+                                 reply_markup=keyboard_add())
             return
 
     await message.answer('Введите категорию траты: ',
@@ -126,6 +126,7 @@ async def save_new_category(message: Message, state: FSMContext) -> None:
         return
 
 
+## delete category
 @router.message(AddExpense.waiting_category, F.text == 'Удалить категорию')
 async def process_delete_category(message: Message, state: FSMContext) -> None:
     categories = get_user_categories(message.from_user.id)
@@ -171,7 +172,6 @@ async def delete_category(message: Message, state: FSMContext) -> None:
 
 @router.message(AddExpense.waiting_confirm_delete)
 async def delete(message: Message, state: FSMContext) -> None:
-    categories = get_user_categories(message.from_user.id)
     data = await state.get_data()
     cat_to_delete = data['accept']
 
@@ -198,12 +198,10 @@ async def delete(message: Message, state: FSMContext) -> None:
                              reply_markup=keyboard_start())
     else:
         await message.answer('Нажми на кнопки!',
-                             reply_markup=keyboard_delete_categories(categories))
+                             reply_markup=keyboard_accept())
+        return
 
-
-
-
-
+## add amount
 @router.message(AddExpense.waiting_category)
 async def process_category(message: Message, state: FSMContext) -> None:
 
@@ -231,7 +229,7 @@ async def process_category(message: Message, state: FSMContext) -> None:
                          reply_markup=keyboard_return())
     await state.set_state(AddExpense.waiting_expense)
 
-## waiting state expense
+
 @router.message(AddExpense.waiting_expense)
 async def process_amount(message: Message, state: FSMContext) -> None:
 
@@ -246,9 +244,13 @@ async def process_amount(message: Message, state: FSMContext) -> None:
         await message.answer('Отмена текущего действия',
                              reply_markup=keyboard_start())
         return
-    
+
     try:
         amount = int(message.text)
+        if amount <= 0:
+            await message.answer('Трата должна быть больше 0!',
+                                 reply_markup=keyboard_return())
+            return
     except ValueError:
         await message.answer('Ошибка! Введите число!',
                              reply_markup=keyboard_start())
