@@ -73,7 +73,7 @@ def init_db():
         (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         user_id INTEGER UNIQUE NOT NULL, 
-        limit_global INT 
+        limit_global INT, 
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE 
                );''')
 
