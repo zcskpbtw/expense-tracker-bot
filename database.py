@@ -1,6 +1,24 @@
 import sqlite3
 
 
+def _get_or_create_user(cur, telegram_id):
+
+    cur.execute('''
+                        SELECT id 
+                        FROM users 
+                        WHERE telegram_id = ?
+            ''', (telegram_id,))
+
+    user_row = cur.fetchone()
+    if user_row is None:
+        cur.execute('''
+                            INSERT INTO users (telegram_id) 
+                            VALUES (?)
+                ''', (telegram_id,))
+        return cur.lastrowid
+    else:
+        return user_row[0]
+
 ## add .bd
 def init_db():
     con = sqlite3.connect('expenses.db')
@@ -64,21 +82,7 @@ def add_expense(telegram_id, date, category_name, amount):
     cur = con.cursor()
     cur.execute("PRAGMA foreign_keys = ON;")
 
-    cur.execute('''
-                SELECT id 
-                FROM users 
-                WHERE telegram_id = ?
-    ''',(telegram_id,))
-
-    user_row = cur.fetchone()
-    if user_row is None:
-        cur.execute('''
-                    INSERT INTO users (telegram_id) 
-                    VALUES (?)
-        ''', (telegram_id,))
-        user_id_db = cur.lastrowid
-    else:
-        user_id_db = user_row[0]
+    user_id_db = _get_or_create_user(cur, telegram_id)
 
     cur.execute('''
                 SELECT id 
@@ -113,21 +117,7 @@ def add_user_category(telegram_id, name):
 
     name = name.strip().capitalize()
 
-    cur.execute('''
-                    SELECT id 
-                    FROM users 
-                    WHERE telegram_id = ?
-        ''', (telegram_id,))
-
-    user_row = cur.fetchone()
-    if user_row is None:
-        cur.execute('''
-                        INSERT INTO users (telegram_id) 
-                        VALUES (?)
-            ''', (telegram_id,))
-        user_id_db = cur.lastrowid
-    else:
-        user_id_db = user_row[0]
+    user_id_db = _get_or_create_user(cur, telegram_id)
 
     cur.execute('''
                     SELECT COUNT(*) 
@@ -190,21 +180,7 @@ def set_default_categories(telegram_id):
     cur = con.cursor()
     cur.execute("PRAGMA foreign_keys = ON;")
 
-    cur.execute('''
-                    SELECT id 
-                    FROM users 
-                    WHERE telegram_id = ?
-        ''', (telegram_id,))
-
-    user_row = cur.fetchone()
-    if user_row is None:
-        cur.execute('''
-                        INSERT INTO users (telegram_id) 
-                        VALUES (?)
-            ''', (telegram_id,))
-        user_id_db = cur.lastrowid
-    else:
-        user_id_db = user_row[0]
+    user_id_db = _get_or_create_user(cur, telegram_id)
 
     cur.execute('''
                     SELECT COUNT(*) 
@@ -265,19 +241,19 @@ def get_max_expense(telegram_id):
     return res
 
 def get_avg_expenses(telegram_id):
-    con_expenses = sqlite3.connect('expenses.db')
-    cur_exp = con_expenses.cursor()
+    con = sqlite3.connect('expenses.db')
+    cur = con.cursor()
     cur.execute("PRAGMA foreign_keys = ON;")
 
-    cur_exp.execute('''
+    cur.execute('''
                     SELECT SUM(e.amount), 
                         COUNT(DISTINCT e.date)
                     FROM expenses e
                     JOIN users u ON u.id = e.user_id
                     WHERE u.telegram_id = ?             
     ''', (telegram_id,))
-    res = cur_exp.fetchall()
-    con_expenses.close()
+    res = cur.fetchall()
+    con.close()
     return res
 
 ## chart
